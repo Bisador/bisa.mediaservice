@@ -1,0 +1,48 @@
+﻿services:
+  
+  minio:
+    image: minio/minio
+    container_name: minio
+    
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BROWSER_WEBSOCKET_WS_PROTOCOL: "ws"
+      MINIO_BROWSER_WEBSOCKET_WSS_PROTOCOL: "wss"
+      MINIO_API_CORS_ALLOW_ORIGIN: "*"
+      MINIO_SERVER_URL: "http://localhost:9000"      # آدرس API
+      MINIO_BROWSER_REDIRECT_URL: "http://localhost:9001"  # آدرس کنسول
+     
+    volumes:
+      - minio_data:/data
+    
+    command: server /data --console-address ":9001"
+    
+volumes:
+  minio_data:
+    
+    
+#version: '3.9'
+ 
+#  rabbitmq:
+#    image: rabbitmq:3-management
+#    container_name: rabbitmq
+#    
+#    ports:
+#      - "5672:5672"
+#      - "15672:15672"
+#        
+#    environment:
+#      RABBITMQ_DEFAULT_USER: admin
+#      RABBITMQ_DEFAULT_PASS: admin
+#      
+#  mediaservice.api:
+#    image: mediaservice.api
+#    build:
+#      context: .
+#      dockerfile: src/MediaService.Api/Dockerfile
+

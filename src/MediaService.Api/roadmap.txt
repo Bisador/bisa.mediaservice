@@ -1,0 +1,41 @@
+FluentValidation
+Global Exception Middleware
+Outbox Pattern
+RabbitMQ + Background Worker
+MinIO
+HealthChecks UI
+OpenTelemetry
+Integration Tests
+Dockerfile + docker-compose
+CI/CD pipeline
+
+
+معماری
+Clean Architecture
+Dependency Inversion
+Stateless API
+Idempotent operations where possible
+
+امنیت
+JWT/OAuth2
+محدودیت سایز فایل
+Content-Type whitelist
+AV scanning در مرحله بعد
+Role/Policy-based authorization
+
+پایداری
+Exception handling middleware
+Retry policy
+Timeout
+Circuit breaker برای سرویس‌های خارجی
+Health checks
+Observability
+Structured logging
+CorrelationId
+Metrics
+Tracing
+
+Storage
+MinIO
+S3-compatible storage
+Azure Blob
