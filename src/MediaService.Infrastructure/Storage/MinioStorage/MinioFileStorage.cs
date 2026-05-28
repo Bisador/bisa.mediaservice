@@ -62,7 +62,7 @@ public sealed class MinioFileStorage : IFileStorage
 
         var args = new GetObjectArgs()
             .WithBucket(bucketName)
-            .WithBucket(objectKey) 
+            .WithObject(objectKey) 
             .WithCallbackStream(stream => { stream.CopyTo(memory); });
 
         await _minio.GetObjectAsync(args, cancellationToken);
