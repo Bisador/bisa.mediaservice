@@ -1,5 +1,41 @@
 ﻿services:
-  
+  postgres:
+    image: postgres:18.4
+    container_name: media-postgres
+
+    ports:
+      - "5432:5432"
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    
+    networks:
+      - media-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: media-pgadmin
+
+    ports:
+      - "5050:80"
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+    depends_on:
+      - postgres
+    networks:
+      - media-network
+      
   minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     container_name: media-minio
@@ -16,28 +52,16 @@
       - minio_data:/data
     
     command: server /data --console-address ":9001"
-    
-  postgres:
-    image: postgres:18.4
-    container_name: media-postgres
-    
-    ports:
-      - "5432:5432"
-        
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       
-    volumes:
-      - postgres_data:/var/lib/postgresql 
-
 volumes:
   postgres_data:
+  pgadmin_data:
   minio_data:
     
+networks:
+  media-network:
     
-#version: '3.9'
+  #version: '3.9'
  
 #  rabbitmq:
 #    image: rabbitmq:3-management
