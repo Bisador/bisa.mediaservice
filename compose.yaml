@@ -1,7 +1,7 @@
 ﻿services:
   
   minio:
-    image: minio/minio
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     container_name: media-minio
     
     ports:
@@ -18,7 +18,7 @@
     command: server /data --console-address ":9001"
     
   postgres:
-    image: postgres
+    image: postgres:18.4
     container_name: media-postgres
     
     ports:
@@ -30,7 +30,7 @@
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql 
 
 volumes:
   postgres_data:
