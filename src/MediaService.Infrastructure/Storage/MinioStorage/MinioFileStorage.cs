@@ -1,5 +1,4 @@
 ﻿using MediaService.Application.Abstractions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
@@ -9,12 +8,12 @@ namespace MediaService.Infrastructure.Storage.MinioStorage;
 public sealed class MinioFileStorage : IFileStorage
 {
     private readonly IMinioClient _minio;
-    private readonly MinioOptions _options; 
+    private readonly MinioStorageProviderOptions _options;
 
-    public MinioFileStorage(IOptions<MinioOptions> configuration)
+    public MinioFileStorage(IOptions<MinioStorageProviderOptions> configuration)
     {
-        _options = configuration.Value??throw new ArgumentNullException(nameof(configuration));  
-        
+        _options = configuration.Value ?? throw new ArgumentNullException(nameof(configuration));
+
         _minio = new MinioClient()
             .WithEndpoint(_options.Endpoint)
             .WithCredentials(_options.AccessKey, _options.SecretKey)
@@ -30,41 +29,41 @@ public sealed class MinioFileStorage : IFileStorage
     {
         var ext = Path.GetExtension(originalFileName);
 
-        var objectName = $"{Guid.NewGuid():N}{ext}";
+        var objectKey = ObjectKeyGenerator.Generate(originalFileName);
+
 
         var size = content.CanSeek ? content.Length : -1;
-        
+
         var putObjectArgs = new PutObjectArgs()
             .WithBucket(_options.Bucket)
-            .WithObject(objectName)
+            .WithObject(objectKey)
             .WithStreamData(content)
             .WithObjectSize(size)
             .WithContentType(contentType);
 
-        await _minio.PutObjectAsync(putObjectArgs, cancellationToken);
+        var response = await _minio.PutObjectAsync(putObjectArgs, cancellationToken);
 
         var publicUrl =
-            $"http://{_options.Endpoint}/{_options.Bucket}/{objectName}";
+            $"{_options.Endpoint}/{_options.Bucket}/{objectKey}";
 
         return new StoredFileResult(
-            objectName,
-            objectName,
-            publicUrl);
+            _options.Bucket,
+            objectKey,
+            publicUrl,
+            response.Etag);
     }
 
     public async Task<Stream> OpenReadAsync(
-        string bucketName, string objectKey,
+        string bucketName, 
+        string objectKey,
         CancellationToken cancellationToken = default)
     {
         var memory = new MemoryStream();
 
         var args = new GetObjectArgs()
-            .WithBucket(_options.Bucket)
-            .WithObject(storagePath)
-            .WithCallbackStream(stream =>
-            {
-                stream.CopyTo(memory);
-            });
+            .WithBucket(bucketName)
+            .WithBucket(objectKey) 
+            .WithCallbackStream(stream => { stream.CopyTo(memory); });
 
         await _minio.GetObjectAsync(args, cancellationToken);
 
@@ -74,13 +73,38 @@ public sealed class MinioFileStorage : IFileStorage
     }
 
     public async Task DeleteAsync(
-        string bucketName, string objectKey,
+        string bucketName,
+        string objectKey,
         CancellationToken cancellationToken = default)
     {
         var args = new RemoveObjectArgs()
-            .WithBucket(_options.Bucket)
-            .WithObject(storagePath);
+            .WithBucket(bucketName)
+            .WithObject(objectKey);
 
-        await _minio.RemoveObjectAsync(args, cancellationToken);
+        await _minio.RemoveObjectAsync(
+            args,
+            cancellationToken);
+    }
+    
+    public async Task InitializeAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var existsArgs = new BucketExistsArgs()
+            .WithBucket(_options.Bucket);
+
+        var exists =
+            await _minio.BucketExistsAsync(
+                existsArgs,
+                cancellationToken);
+
+        if (exists)
+            return;
+
+        var makeArgs = new MakeBucketArgs()
+            .WithBucket(_options.Bucket);
+
+        await _minio.MakeBucketAsync(
+            makeArgs,
+            cancellationToken);
     }
 }

@@ -13,5 +13,5 @@ public record ContentTypeIsNotAllowed : Error
 }
 
 public record MediaNotFound() : Error(nameof(MediaNotFound), "Media not found.");
+public record InvalidFileName() : Error(nameof(InvalidFileName), "Invalid File Name.");
 
- 
