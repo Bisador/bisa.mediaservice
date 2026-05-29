@@ -1,5 +1,6 @@
 # Media Service
 
+## 📖 overview
 A production-oriented media storage service built with ASP.NET Core, PostgreSQL, and MinIO.
 
 This service provides a clean and extensible architecture for storing and serving media files using object storage patterns commonly used in enterprise systems.
@@ -12,7 +13,7 @@ The service supports multiple storage providers through abstraction:
 Additional providers can easily be added.
 <hr>
  
-### Features
+## 🧱 Features
 
 #### Core Storage:
 * Upload ✅
@@ -76,7 +77,7 @@ Additional providers can easily be added.
 
 <hr>
 
-### Architecture
+###  Architecture
 
 Client<br>
 ↓<br>
@@ -93,7 +94,7 @@ Binary Files → MinIO
 
 <hr>
 
-### Technologies
+## 🚀 Technologies
 * ASP.NET Core
 * Entity Framework Core
 * PostgreSQL
@@ -103,25 +104,28 @@ Binary Files → MinIO
 
 <hr>
 
-### Running the Project
+## 🛠️ Setup
 
 #### Requirements
 * .NET 10 SDK
 * Docker Desktop
   
 #### Start Infrastructure
-`docker compose up -d`
+```bash
+docker compose up -d
+```
 <br>
 
-#### Apply Migrations
-`dotnet ef database update
+####  Apply Migrations
+```shell
+dotnet ef database update
 --project src/MediaService.Infrastructure 
---startup-project src/MediaService.Api`
-
+--startup-project src/MediaService.Api
+```
 #### Run API
-
-`dotnet run --project src/MediaService.Api
-`
+```shell
+dotnet run --project src/MediaService.Api
+```
 
 #### MinIO Console
 [http://localhost:9001](http://localhost:9001)
@@ -131,14 +135,14 @@ Credentials are configured in .env.
 #### Configuration
 
 ##### .env
+```
+POSTGRES_DB=media_db  
+POSTGRES_USER=postgres 
+POSTGRES_PASSWORD=postgres  
 
-POSTGRES_DB=media_db <br>
-POSTGRES_USER=postgres <br>
-POSTGRES_PASSWORD=postgres <br>
-
-MINIO_ROOT_USER=admin <br>
-MINIO_ROOT_PASSWORD=password123 <br>
- 
+MINIO_ROOT_USER=admin  
+MINIO_ROOT_PASSWORD=password123 
+ ```
 <hr>
 
 ### Roadmap

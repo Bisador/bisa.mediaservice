@@ -14,13 +14,57 @@ public class MediaItem
     public long Size { get; private set; }
     public string StorageProvider { get; private set; } = null!;
     public MediaStatus Status { get; private set; }
+
+    public MediaPurpose Purpose { get; private set; }
+    public ICollection<MediaLink> Links { get; private set; } = [];
+
     public string? OwnerId { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? DeletedAt { get; private set; }
     public string? Sha256 { get; private set; }
 
+    public static MediaItem CreatePersonal(
+        string originalFileName,
+        string bucketName,
+        string objectKey,
+        string contentType,
+        long size,
+        string provider,
+        string? ownerId)
+    {
+        return new MediaItem(
+            originalFileName,
+            bucketName,
+            objectKey,
+            contentType,
+            size,
+            provider,
+            ownerId,
+            MediaPurpose.PersonalStorage);
+    }
+    
+    public static MediaItem CreateAttachment(
+        string originalFileName,
+        string bucketName,
+        string objectKey,
+        string contentType,
+        long size,
+        string provider,
+        string? ownerId)
+    {
+        return new MediaItem(
+            originalFileName,
+            bucketName,
+            objectKey,
+            contentType,
+            size,
+            provider,
+            ownerId,
+            MediaPurpose.Attachment);
+    }
+    
 
-    public MediaItem(
+    private MediaItem(
         string originalFileName,
         string bucketName,
         string objectKey,
@@ -28,6 +72,7 @@ public class MediaItem
         long size,
         string storageProvider,
         string? ownerId,
+        MediaPurpose  purpose,
         string? sha256 = null) : this()
     {
         Id = Guid.NewGuid();
@@ -41,8 +86,8 @@ public class MediaItem
         Size = size;
 
         StorageProvider = storageProvider;
-
-        OwnerId = ownerId;
+        Purpose = purpose;
+        OwnerId = ownerId; 
 
         Sha256 = sha256;
 
@@ -60,9 +105,14 @@ public class MediaItem
     {
         Status = MediaStatus.Available;
     }
-  
+
     public void MarkDeleting()
     {
+        // todo: if last owned link is removed then soft delete the file
+        // todo: Cleanup Job
+        if (Links.Count != 0)
+            throw new InvalidOperationException();
+        
         Status = MediaStatus.Deleting;
     }
 
@@ -71,7 +121,14 @@ public class MediaItem
         Status = MediaStatus.Deleted;
         DeletedAt = DateTime.UtcNow;
     }
-    
- 
+
+    // public Result AddLink(
+    //     string ownerType,
+    //     Guid ownerId,
+    //     AttachmentMode mode)
+    // {
+    //     
+    // }
+
     public bool IsDeleted() => Status == MediaStatus.Deleted;
 }

@@ -24,7 +24,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage fi
     {
         if (!IsValid(file, out var failure))
             return failure;
- 
+
         await using var stream = file.OpenReadStream();
 
         var stored = await fileStorage.SaveAsync(
@@ -33,13 +33,13 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage fi
             file.ContentType,
             cancellationToken);
 
-        var media = new MediaItem(
+        var media = MediaItem.CreatePersonal(
             originalFileName: file.FileName,
             bucketName: stored.BucketName,
             objectKey: stored.ObjectKey,
             contentType: file.ContentType,
             size: file.Length,
-            storageProvider: "MinIO",
+            provider: "MinIO",
             ownerId: ownerId);
 
         try
@@ -55,7 +55,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage fi
                 stored.PublicUrl,
                 media.CreatedAt));
         }
-        catch (Exception e)
+        catch
         {
             await fileStorage.DeleteAsync(
                 stored.BucketName,
