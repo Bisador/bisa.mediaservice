@@ -116,7 +116,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
 
         if (file.Length > MaxFileSize)
         {
-            failure = Result.Failure<MediaResponse>(new FileSizeExceeded());
+            failure = Result.Failure<MediaResponse>(new FileSizeExceededError());
             return false;
         }
 
@@ -137,7 +137,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
         var media = await repository.GetByIdAsync(command.MediaId, cancellationToken);
 
         if (media is null || media.IsDeleted())
-            return Result.Failure(new MediaNotFound());
+            return Result.Failure(new MediaNotFoundError());
 
         media.AddLink(command.Owner);
 
@@ -153,7 +153,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
         var media = await repository.GetByIdAsync(command.MediaId, cancellationToken);
 
         if (media is null || media.IsDeleted())
-            return Result.Failure(new MediaNotFound());
+            return Result.Failure(new MediaNotFoundError());
 
         var link = media.RemoveLink(command.LinkId);
 
@@ -172,7 +172,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
         var media = await repository.GetByIdAsync(id, cancellationToken);
 
         if (media is null || media.IsDeleted())
-            return Result.Failure<MediaDownloadResult>(new MediaNotFound());
+            return Result.Failure<MediaDownloadResult>(new MediaNotFoundError());
 
         var stream = await storage.OpenReadAsync(
             media.BucketName,
@@ -193,7 +193,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
         var media = await repository.GetByIdAsync(id, cancellationToken);
 
         if (media is null || media.IsDeleted())
-            return Result.Failure(new MediaNotFound());
+            return Result.Failure(new MediaNotFoundError());
 
         media.MarkDeleting();
         await repository.SaveChangesAsync(cancellationToken);
@@ -233,10 +233,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
             .Where(x => !validIds.Contains(x))
             .ToList();
 
-        return Result.Success(
-            new MediaValidationResponse(
-                validIds.ToList(),
-                invalidIds));
+        return Result.Success(new MediaValidationResponse(validIds.ToList(), invalidIds));
     }
 
     private static MediaResponse Map(MediaItem media, string url)

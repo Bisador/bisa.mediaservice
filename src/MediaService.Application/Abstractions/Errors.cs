@@ -2,7 +2,7 @@ namespace MediaService.Application.Abstractions;
 
 public record FileIsEmpty() : Error(nameof(FileIsEmpty), "File is empty.");
 
-public record FileSizeExceeded() : Error(nameof(FileSizeExceeded), "File size exceeds the allowed limit.");
+public record FileSizeExceededError() : Error(nameof(FileSizeExceededError), "File size exceeds the allowed limit.");
 
 public record ContentTypeIsNotAllowed : Error
 {
@@ -12,6 +12,7 @@ public record ContentTypeIsNotAllowed : Error
     } 
 }
 
-public record MediaNotFound() : Error(nameof(MediaNotFound), "Media not found.");
+public record MediaNotFoundError() : Error(nameof(MediaNotFoundError), "Media not found.");
 public record InvalidFileName() : Error(nameof(InvalidFileName), "Invalid File Name.");
 
+public record DuplicateLinkError() : Error(nameof(DuplicateLinkError), "Link is Duplicated..");
