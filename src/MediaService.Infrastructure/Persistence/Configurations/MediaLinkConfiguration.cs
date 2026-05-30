@@ -13,8 +13,9 @@ public sealed class MediaLinkConfiguration : IEntityTypeConfiguration<MediaLink>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.OwnerType)
-            .HasMaxLength(100);
-        
+            .HasMaxLength(200)
+            .IsRequired();
+
         builder.Property(x => x.OwnerId)
             .HasMaxLength(200);
 
@@ -25,9 +26,13 @@ public sealed class MediaLinkConfiguration : IEntityTypeConfiguration<MediaLink>
                 x.OwnerId
             });
 
-        builder.HasOne(x => x.Media)
-            .WithMany(x => x.Links)
-            .HasForeignKey(x => x.MediaId)
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(x =>
+                new
+                {
+                    x.MediaId,
+                    x.OwnerType,
+                    x.OwnerId
+                })
+            .IsUnique();
     }
 }

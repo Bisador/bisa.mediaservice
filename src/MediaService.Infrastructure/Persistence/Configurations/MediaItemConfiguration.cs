@@ -9,7 +9,7 @@ public class MediaItemConfiguration : IEntityTypeConfiguration<MediaItem>
 {
     public void Configure(EntityTypeBuilder<MediaItem> builder)
     {
-        builder.ToTable("media_items");
+        builder.ToTable("MediaItems");
 
         builder.HasKey(x => x.Id);
 
@@ -65,6 +65,11 @@ public class MediaItemConfiguration : IEntityTypeConfiguration<MediaItem>
                     x.ObjectKey
                 })
             .IsUnique();
+        
+        builder.HasMany(x => x.Links)
+            .WithOne(x => x.Media)
+            .HasForeignKey(x => x.MediaId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.OwnerId);

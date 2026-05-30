@@ -6,6 +6,6 @@ public interface IMediaRepository
 {
     Task AddAsync(MediaItem item, CancellationToken cancellationToken = default);
     Task<MediaItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<List<MediaItem>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken);
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
-    Task<List<MediaItem>> GetByIdsAsync(IReadOnlyCollection<Guid> commandMediaIds, CancellationToken cancellationToken);
 }
