@@ -35,20 +35,24 @@ public class MediaItemConfiguration : IEntityTypeConfiguration<MediaItem>
         builder.Property(x => x.StorageProvider)
             .HasMaxLength(64)
             .IsRequired();
-
-        builder.Property(x => x.OwnerId)
-            .HasMaxLength(128);
-
-        builder.Property(x => x.Sha256)
-            .HasMaxLength(128);
-
+        
         builder.Property(x => x.Size)
             .IsRequired();
 
         builder.Property(x => x.Status)
             .HasConversion<int>()
             .IsRequired();
+        
+        builder.Property(x => x.Purpose)
+            .HasConversion<int>()
+            .IsRequired();
 
+        builder.Property(x => x.OwnerId)
+            .HasMaxLength(128);
+
+        builder.Property(x => x.Sha256)
+            .HasMaxLength(128);
+ 
         builder.Property(x => x.CreatedAt)
             .IsRequired();
 

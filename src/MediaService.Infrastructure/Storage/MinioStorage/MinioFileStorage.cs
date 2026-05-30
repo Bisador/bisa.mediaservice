@@ -21,6 +21,8 @@ public sealed class MinioFileStorage : IFileStorage
             .Build();
     }
 
+    public string ProviderName => nameof(MinioFileStorage);
+    
     public async Task<StoredFileResult> SaveAsync(
         Stream content,
         string originalFileName,

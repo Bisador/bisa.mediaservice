@@ -15,6 +15,8 @@ public sealed class LocalFileStorage : IFileStorage
         Directory.CreateDirectory(_options.BasePath);
     }
 
+    public string ProviderName => nameof(LocalFileStorage);
+
     public async Task<StoredFileResult> SaveAsync(
         Stream content,
         string originalFileName,

@@ -7,5 +7,3 @@ public sealed record MediaResponse(
     long Size,
     string Url,
     DateTimeOffset CreatedAt);
-    
-    

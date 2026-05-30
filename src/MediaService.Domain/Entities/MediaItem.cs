@@ -1,4 +1,6 @@
 ﻿using MediaService.Domain.Enums;
+using MediaService.Domain.Exceptions;
+using MediaService.Domain.Models;
 
 namespace MediaService.Domain.Entities;
 
@@ -42,7 +44,7 @@ public class MediaItem
             ownerId,
             MediaPurpose.PersonalStorage);
     }
-    
+
     public static MediaItem CreateAttachment(
         string originalFileName,
         string bucketName,
@@ -50,9 +52,10 @@ public class MediaItem
         string contentType,
         long size,
         string provider,
+        OwnerReference link,
         string? ownerId)
     {
-        return new MediaItem(
+        var media = new MediaItem(
             originalFileName,
             bucketName,
             objectKey,
@@ -61,8 +64,11 @@ public class MediaItem
             provider,
             ownerId,
             MediaPurpose.Attachment);
+
+        media.AddLink(link);
+        return media;
     }
-    
+
 
     private MediaItem(
         string originalFileName,
@@ -72,7 +78,7 @@ public class MediaItem
         long size,
         string storageProvider,
         string? ownerId,
-        MediaPurpose  purpose,
+        MediaPurpose purpose,
         string? sha256 = null) : this()
     {
         Id = Guid.NewGuid();
@@ -87,11 +93,11 @@ public class MediaItem
 
         StorageProvider = storageProvider;
         Purpose = purpose;
-        OwnerId = ownerId; 
+        OwnerId = ownerId;
 
         Sha256 = sha256;
 
-        Status = MediaStatus.Uploading;
+        Status = MediaStatus.Available;
 
         CreatedAt = DateTime.UtcNow;
     }
@@ -101,6 +107,11 @@ public class MediaItem
     }
 
 
+    public void MarkUploading()
+    {
+        Status = MediaStatus.Uploading;
+    }
+    
     public void MarkAvailable()
     {
         Status = MediaStatus.Available;
@@ -108,11 +119,9 @@ public class MediaItem
 
     public void MarkDeleting()
     {
-        // todo: if last owned link is removed then soft delete the file
-        // todo: Cleanup Job
-        if (Links.Count != 0)
-            throw new InvalidOperationException();
-        
+        if (Purpose == MediaPurpose.PersonalStorage && HasLinks)
+            throw new MediaWithLinksCantBeRemovedException();
+
         Status = MediaStatus.Deleting;
     }
 
@@ -122,13 +131,38 @@ public class MediaItem
         DeletedAt = DateTime.UtcNow;
     }
 
-    // public Result AddLink(
-    //     string ownerType,
-    //     Guid ownerId,
-    //     AttachmentMode mode)
-    // {
-    //     
-    // }
+    public MediaLink AddLink(OwnerReference ownerReference)
+    {
+        if (!CanAcceptLink)
+            throw new MediaIsNotAvailableException();
+
+        if (Purpose == MediaPurpose.Attachment && Links.Count != 1)
+            throw new AttachmentMustHaveOnlyOneLinkException();
+
+        var link = new MediaLink(ownerReference.OwnerType, ownerReference.OwnerId);
+
+        if (Links.Any(p => p.Equals(link)))
+            throw new DuplicateLinkException();
+
+        Links.Add(link);
+
+        return link;
+    }
+
+    public MediaLink? RemoveLink(Guid linkId)
+    {
+        if (Purpose == MediaPurpose.Attachment)
+            throw new AttachmentLinkCantBeRemovedException();
+
+        var link = Links.FirstOrDefault(p => p.Id.Equals(linkId));
+        if (link is null)
+            return null;
+
+        Links.Remove(link);
+        return link;
+    }
 
     public bool IsDeleted() => Status == MediaStatus.Deleted;
+    public bool HasLinks => Links.Any();
+    public bool CanAcceptLink => Status == MediaStatus.Available;
 }

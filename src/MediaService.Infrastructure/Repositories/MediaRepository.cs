@@ -15,4 +15,8 @@ public sealed class MediaRepository(MediaDbContext db) : IMediaRepository
 
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
         => db.SaveChangesAsync(cancellationToken);
+
+    public Task<List<MediaItem>> GetByIdsAsync(IReadOnlyCollection<Guid> commandMediaIds,
+        CancellationToken cancellationToken)
+        => db.MediaItems.Where(x => commandMediaIds.Contains(x.Id)).ToListAsync(cancellationToken);
 }

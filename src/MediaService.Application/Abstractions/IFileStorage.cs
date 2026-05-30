@@ -2,6 +2,7 @@
 
 public interface IFileStorage
 {
+    string ProviderName { get; }
     Task<StoredFileResult> SaveAsync(
         Stream content,
         string originalFileName,
