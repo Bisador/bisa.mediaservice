@@ -7,6 +7,7 @@ namespace MediaService.Domain.Entities;
 public class MediaItem
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
+    public Guid TenantId { get; private set; }
 
     public string OriginalFileName { get; private set; } = null!;
     public string BucketName { get; private set; } = null!;
@@ -26,6 +27,7 @@ public class MediaItem
     public string? Sha256 { get; private set; }
 
     public static MediaItem CreatePersonal(
+        Guid tenantId,
         string originalFileName,
         string bucketName,
         string objectKey,
@@ -35,6 +37,7 @@ public class MediaItem
         string? ownerId)
     {
         return new MediaItem(
+            tenantId,
             originalFileName,
             bucketName,
             objectKey,
@@ -46,6 +49,7 @@ public class MediaItem
     }
 
     public static MediaItem CreateAttachment(
+        Guid tenantId,
         string originalFileName,
         string bucketName,
         string objectKey,
@@ -56,6 +60,7 @@ public class MediaItem
         string? ownerId)
     {
         var media = new MediaItem(
+            tenantId,
             originalFileName,
             bucketName,
             objectKey,
@@ -71,6 +76,7 @@ public class MediaItem
 
 
     private MediaItem(
+        Guid tenantId,
         string originalFileName,
         string bucketName,
         string objectKey,
@@ -82,6 +88,7 @@ public class MediaItem
         string? sha256 = null) : this()
     {
         Id = Guid.NewGuid();
+        TenantId = tenantId;
 
         OriginalFileName = originalFileName;
 
@@ -111,7 +118,7 @@ public class MediaItem
     {
         Status = MediaStatus.Uploading;
     }
-    
+
     public void MarkAvailable()
     {
         Status = MediaStatus.Available;

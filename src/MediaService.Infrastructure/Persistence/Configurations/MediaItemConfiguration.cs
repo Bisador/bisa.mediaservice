@@ -73,6 +73,7 @@ public class MediaItemConfiguration : IEntityTypeConfiguration<MediaItem>
 
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.OwnerId);
+        builder.HasIndex(x => x.TenantId);
         builder.HasIndex(x => x.CreatedAt);
         builder.HasQueryFilter(x => x.Status != MediaStatus.Deleted);
     }
