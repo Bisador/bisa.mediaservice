@@ -42,6 +42,7 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
 
         var command = new UploadAttachmentCommand(
             tenantId,
+            request.Category,
             request.File,
             new OwnerReference(request.OwnerType, request.OwnerId),
             ownerId);

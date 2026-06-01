@@ -28,7 +28,12 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
 
         await using var stream = command.File.OpenReadStream();
 
+        var objectKey =
+            ObjectKeyGenerator.Generate(command.TenantId, MediaItem.PersonalCategory, command.File.FileName);
+
+
         var stored = await storage.SaveAsync(
+            objectKey,
             stream,
             command.File.FileName,
             command.File.ContentType,
@@ -69,7 +74,10 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
 
         await using var stream = command.File.OpenReadStream();
 
+        var objectKey = ObjectKeyGenerator.Generate(command.TenantId, command.Category, command.File.FileName);
+
         var stored = await storage.SaveAsync(
+            objectKey,
             stream,
             command.File.FileName,
             command.File.ContentType,
@@ -79,6 +87,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
             command.TenantId,
             command.File.FileName,
             stored.BucketName,
+            command.Category,
             stored.ObjectKey,
             command.File.ContentType,
             command.File.Length,

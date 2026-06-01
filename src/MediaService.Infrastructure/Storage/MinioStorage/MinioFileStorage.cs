@@ -24,17 +24,14 @@ public sealed class MinioFileStorage : IFileStorage
     public string ProviderName => nameof(MinioFileStorage);
     
     public async Task<StoredFileResult> SaveAsync(
-        Guid tenantId,
+        string objectKey, 
         Stream content,
         string originalFileName,
         string contentType,
         CancellationToken cancellationToken = default)
     {
         var ext = Path.GetExtension(originalFileName);
-
-        var objectKey = ObjectKeyGenerator.Generate(tenantId,originalFileName);
-
-
+ 
         var size = content.CanSeek ? content.Length : -1;
 
         var putObjectArgs = new PutObjectArgs()

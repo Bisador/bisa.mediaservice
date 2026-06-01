@@ -27,6 +27,10 @@ public class MediaItemConfiguration : IEntityTypeConfiguration<MediaItem>
         builder.Property(x => x.BucketName)
             .HasMaxLength(128)
             .IsRequired();
+        
+        builder.Property(x => x.Category)
+            .HasMaxLength(200)
+            .IsRequired();
 
         builder.Property(x => x.ObjectKey)
             .HasMaxLength(1024)
@@ -78,6 +82,7 @@ public class MediaItemConfiguration : IEntityTypeConfiguration<MediaItem>
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.OwnerId);
         builder.HasIndex(x => x.TenantId);
+        builder.HasIndex(x => x.Category);
         builder.HasIndex(x => x.CreatedAt);
         builder.HasQueryFilter(x => x.Status != MediaStatus.Deleted);
     }

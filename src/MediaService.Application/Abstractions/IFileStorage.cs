@@ -5,7 +5,7 @@ public interface IFileStorage
     string ProviderName { get; }
 
     Task<StoredFileResult> SaveAsync(
-        Guid tenantId,
+        string objectKey, 
         Stream content,
         string originalFileName,
         string contentType,

@@ -3,4 +3,5 @@
 public sealed record UploadAttachmentRequest(
     IFormFile File,
     string OwnerType,
-    string OwnerId);
+    string OwnerId,
+    string Category);

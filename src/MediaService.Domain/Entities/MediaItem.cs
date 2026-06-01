@@ -6,22 +6,25 @@ namespace MediaService.Domain.Entities;
 
 public class MediaItem
 {
+    public static string PersonalCategory => "Personal";
+    
     public Guid Id { get; private set; } = Guid.NewGuid();
     public Guid TenantId { get; private set; }
 
     public string OriginalFileName { get; private set; } = null!;
     public string BucketName { get; private set; } = null!;
+    public string Category { get; private set; } = null!;
     public string ObjectKey { get; private set; } = null!;
 
     public string ContentType { get; private set; } = null!;
     public long Size { get; private set; }
     public string StorageProvider { get; private set; } = null!;
+
     public MediaStatus Status { get; private set; }
+    public MediaAccessLevel AccessLevel { get; private set; } = MediaAccessLevel.Private;
 
     public MediaPurpose Purpose { get; private set; }
     public ICollection<MediaLink> Links { get; private set; } = [];
-    public MediaAccessLevel AccessLevel { get; private set; } = MediaAccessLevel.Private;
-
 
     public string? OwnerId { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
@@ -31,7 +34,7 @@ public class MediaItem
     public static MediaItem CreatePersonal(
         Guid tenantId,
         string originalFileName,
-        string bucketName,
+        string bucketName, 
         string objectKey,
         string contentType,
         long size,
@@ -43,6 +46,7 @@ public class MediaItem
             tenantId,
             originalFileName,
             bucketName,
+            PersonalCategory,
             objectKey,
             contentType,
             size,
@@ -57,6 +61,7 @@ public class MediaItem
         Guid tenantId,
         string originalFileName,
         string bucketName,
+        string category,
         string objectKey,
         string contentType,
         long size,
@@ -69,6 +74,7 @@ public class MediaItem
             tenantId,
             originalFileName,
             bucketName,
+            category,
             objectKey,
             contentType,
             size,
@@ -85,6 +91,7 @@ public class MediaItem
     private MediaItem(
         Guid tenantId,
         string originalFileName,
+        string category,
         string bucketName,
         string objectKey,
         string contentType,
@@ -101,6 +108,7 @@ public class MediaItem
         OriginalFileName = originalFileName;
 
         BucketName = bucketName;
+        Category = category;
         ObjectKey = objectKey;
 
         ContentType = contentType;
