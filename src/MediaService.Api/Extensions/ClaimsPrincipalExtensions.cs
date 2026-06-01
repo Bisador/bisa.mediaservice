@@ -9,12 +9,13 @@ public static class ClaimsPrincipalExtensions
         return principal.FindFirst("sub")?.Value;
     }
     
-    public static Guid? GetTenantId(this ClaimsPrincipal principal)
+    public static Guid GetTenantId(this ClaimsPrincipal principal)
     {
         var value = principal.FindFirst("tenant_id")?.Value;
 
-        return Guid.TryParse(value, out var tenantId)
-            ? tenantId
-            : null;
-    }
+        if (!Guid.TryParse(value, out var tenantId))
+            throw new UnauthorizedAccessException();
+
+        return tenantId;
+    } 
 }

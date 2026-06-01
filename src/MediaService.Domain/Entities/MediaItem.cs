@@ -20,6 +20,8 @@ public class MediaItem
 
     public MediaPurpose Purpose { get; private set; }
     public ICollection<MediaLink> Links { get; private set; } = [];
+    public MediaAccessLevel AccessLevel { get; private set; } = MediaAccessLevel.Private;
+
 
     public string? OwnerId { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
@@ -34,7 +36,8 @@ public class MediaItem
         string contentType,
         long size,
         string provider,
-        string? ownerId)
+        string? ownerId,
+        MediaAccessLevel? accessLevel = null)
     {
         return new MediaItem(
             tenantId,
@@ -45,7 +48,9 @@ public class MediaItem
             size,
             provider,
             ownerId,
-            MediaPurpose.PersonalStorage);
+            MediaPurpose.PersonalStorage,
+            accessLevel ?? MediaAccessLevel.Private
+        );
     }
 
     public static MediaItem CreateAttachment(
@@ -57,7 +62,8 @@ public class MediaItem
         long size,
         string provider,
         OwnerReference link,
-        string? ownerId)
+        string? ownerId,
+        MediaAccessLevel? accessLevel = null)
     {
         var media = new MediaItem(
             tenantId,
@@ -68,7 +74,8 @@ public class MediaItem
             size,
             provider,
             ownerId,
-            MediaPurpose.Attachment);
+            MediaPurpose.Attachment,
+            accessLevel ?? MediaAccessLevel.Private);
 
         media.AddLink(link);
         return media;
@@ -85,6 +92,7 @@ public class MediaItem
         string storageProvider,
         string? ownerId,
         MediaPurpose purpose,
+        MediaAccessLevel accessLevel,
         string? sha256 = null) : this()
     {
         Id = Guid.NewGuid();
@@ -100,6 +108,7 @@ public class MediaItem
 
         StorageProvider = storageProvider;
         Purpose = purpose;
+        AccessLevel = accessLevel;
         OwnerId = ownerId;
 
         Sha256 = sha256;

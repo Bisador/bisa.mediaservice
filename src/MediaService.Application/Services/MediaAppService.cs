@@ -4,7 +4,7 @@ using MediaService.Application.DTOs;
 using MediaService.Application.Errors;
 using MediaService.Domain.Entities;
 
-namespace MediaService.Application.Media;
+namespace MediaService.Application.Services;
 
 public sealed class MediaAppService(IMediaRepository repository, IFileStorage storage) : IMediaAppService
 {
@@ -35,6 +35,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
             cancellationToken);
 
         var media = MediaItem.CreatePersonal(
+            command.TenantId,
             command.File.FileName,
             stored.BucketName,
             stored.ObjectKey,
@@ -75,6 +76,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
             cancellationToken);
 
         var media = MediaItem.CreateAttachment(
+            command.TenantId,
             command.File.FileName,
             stored.BucketName,
             stored.ObjectKey,
@@ -136,7 +138,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
     {
         var media = await repository.GetByIdAsync(command.MediaId, cancellationToken);
 
-        if (media is null || media.IsDeleted())
+        if (media is null || media.IsDeleted() || media.TenantId != command.TenantId)
             return Result.Failure(new MediaNotFoundError());
 
         media.AddLink(command.Owner);
@@ -152,7 +154,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
     {
         var media = await repository.GetByIdAsync(command.MediaId, cancellationToken);
 
-        if (media is null || media.IsDeleted())
+        if (media is null || media.IsDeleted() || media.TenantId != command.TenantId)
             return Result.Failure(new MediaNotFoundError());
 
         var link = media.RemoveLink(command.LinkId);
@@ -187,12 +189,13 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
     }
 
     public async Task<Result> DeleteAsync(
+        Guid tenantId,
         Guid id,
         CancellationToken cancellationToken = default)
     {
         var media = await repository.GetByIdAsync(id, cancellationToken);
 
-        if (media is null || media.IsDeleted())
+        if (media is null || media.IsDeleted() || media.TenantId != tenantId)
             return Result.Failure(new MediaNotFoundError());
 
         media.MarkDeleting();
@@ -225,6 +228,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
             cancellationToken);
 
         var validIds = media
+            .Where(x => x.TenantId == command.TenantId)
             .Where(x => !x.IsDeleted())
             .Select(x => x.Id)
             .ToHashSet();

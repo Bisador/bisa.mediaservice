@@ -1,6 +1,5 @@
 using MediaService.Application.Commands;
 using MediaService.Application.DTOs;
-using MediaService.Application.Media;
 
 namespace MediaService.Application.Abstractions;
 
@@ -27,6 +26,7 @@ public interface IMediaAppService
         CancellationToken cancellationToken = default);
 
     Task<Result> DeleteAsync(
+        Guid tenantId,
         Guid id,
         CancellationToken cancellationToken = default);
 

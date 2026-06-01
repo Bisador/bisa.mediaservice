@@ -16,6 +16,12 @@ public sealed class MediaRepository(MediaDbContext db) : IMediaRepository
             .Include(x => x.Links)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
+    public Task<MediaItem?> GetByIdAsync(Guid tenantId, Guid id, CancellationToken cancellationToken = default)
+    {
+        return db.MediaItems
+            .SingleOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId, cancellationToken);
+    }
+
     public Task<List<MediaItem>> GetByIdsAsync(IEnumerable<Guid> ids,
         CancellationToken cancellationToken)
         => db.MediaItems

@@ -1,5 +1,5 @@
 using MediaService.Application.Abstractions;
-using MediaService.Application.Media;
+using MediaService.Application.Services;
 using MediaService.Infrastructure.Persistence;
 using MediaService.Infrastructure.Repositories;
 using MediaService.Infrastructure.Storage;

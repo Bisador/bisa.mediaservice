@@ -15,6 +15,10 @@ public class MediaItemConfiguration : IEntityTypeConfiguration<MediaItem>
 
         builder.Property(x => x.Id)
             .ValueGeneratedNever();
+        
+        builder.Property(x => x.TenantId)
+            .IsRequired();
+        
 
         builder.Property(x => x.OriginalFileName)
             .HasMaxLength(512)

@@ -21,8 +21,9 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
         CancellationToken cancellationToken)
     {
         var ownerId = User.GetUserId();
+        var tenantId = User.GetTenantId();
 
-        var command = new UploadPersonalMediaCommand(request.File, ownerId);
+        var command = new UploadPersonalMediaCommand(tenantId, request.File, ownerId);
 
         var result = await service.UploadPersonalAsync(command, cancellationToken);
 
@@ -36,11 +37,13 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
         [FromForm] UploadAttachmentRequest request,
         CancellationToken cancellationToken)
     {
-        var ownerId = User.GetUserId(); 
+        var ownerId = User.GetUserId();
+        var tenantId = User.GetTenantId();
 
         var command = new UploadAttachmentCommand(
+            tenantId,
             request.File,
-            new OwnerReference(request.OwnerType, request.OwnerEntityId),
+            new OwnerReference(request.OwnerType, request.OwnerId),
             ownerId);
 
         var result = await service.UploadAttachmentAsync(command, cancellationToken);
@@ -61,7 +64,9 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
     [Authorize]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await service.DeleteAsync(id, cancellationToken);
+        var tenantId = User.GetTenantId();
+
+        await service.DeleteAsync(tenantId, id, cancellationToken);
         return NoContent();
     }
 
@@ -71,7 +76,10 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
         AddMediaLinkRequest request,
         CancellationToken cancellationToken)
     {
+        var tenantId = User.GetTenantId();
+
         var command = new LinkMediaCommand(
+            tenantId,
             id,
             new OwnerReference(request.OwnerType, request.OwnerId));
 
@@ -86,7 +94,9 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
         Guid linkId,
         CancellationToken cancellationToken)
     {
-        var result = await service.RemoveLinkAsync(new RemoveMediaLinkCommand(id, linkId), cancellationToken);
+        var tenantId = User.GetTenantId();
+
+        var result = await service.RemoveLinkAsync(new RemoveMediaLinkCommand(tenantId, id, linkId), cancellationToken);
 
         return result.Match(_ => NoContent(), Problem);
     }
@@ -97,7 +107,11 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
             ValidateMediaRequest request,
             CancellationToken cancellationToken)
     {
-        var result = await service.ValidateAsync(new ValidateMediaCommand(request.MediaIds), cancellationToken);
+        var tenantId = User.GetTenantId();
+
+        var result = await service.ValidateAsync(
+            new ValidateMediaCommand(tenantId, request.MediaIds),
+            cancellationToken);
 
         return result.Match(Ok, Problem);
     }

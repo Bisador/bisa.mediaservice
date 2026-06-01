@@ -1,3 +1,5 @@
 namespace MediaService.Application.Commands;
 
-public sealed record ValidateMediaCommand(IReadOnlyCollection<Guid> MediaIds);
+public sealed record ValidateMediaCommand(
+    Guid TenantId,
+    IReadOnlyCollection<Guid> MediaIds);

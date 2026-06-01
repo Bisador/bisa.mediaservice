@@ -18,12 +18,13 @@ public sealed class LocalFileStorage : IFileStorage
     public string ProviderName => nameof(LocalFileStorage);
 
     public async Task<StoredFileResult> SaveAsync(
+        Guid tenantId,
         Stream content,
         string originalFileName,
         string contentType,
         CancellationToken cancellationToken = default)
     {
-        var objectKey = ObjectKeyGenerator.Generate(originalFileName);
+        var objectKey = ObjectKeyGenerator.Generate(tenantId, originalFileName);
         var fullPath = Path.Combine(_options.BasePath, BucketName, objectKey);
         var directory = Path.GetDirectoryName(fullPath)!;
         Directory.CreateDirectory(directory);
