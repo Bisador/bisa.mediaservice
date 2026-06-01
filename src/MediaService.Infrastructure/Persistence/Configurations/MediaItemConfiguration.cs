@@ -54,6 +54,10 @@ public class MediaItemConfiguration : IEntityTypeConfiguration<MediaItem>
         builder.Property(x => x.Purpose)
             .HasConversion<int>()
             .IsRequired();
+        
+        builder.Property(x => x.AccessLevel)
+            .HasConversion<int>()
+            .IsRequired();
 
         builder.Property(x => x.OwnerId)
             .HasMaxLength(128);

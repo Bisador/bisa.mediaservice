@@ -21,7 +21,7 @@ public class MediaItem
     public string StorageProvider { get; private set; } = null!;
 
     public MediaStatus Status { get; private set; }
-    public MediaAccessLevel AccessLevel { get; private set; } = MediaAccessLevel.Private;
+    public MediaAccessLevel AccessLevel { get; private set; } 
 
     public MediaPurpose Purpose { get; private set; }
     public ICollection<MediaLink> Links { get; private set; } = [];
@@ -53,7 +53,7 @@ public class MediaItem
             provider,
             ownerId,
             MediaPurpose.PersonalStorage,
-            accessLevel ?? MediaAccessLevel.Private
+            accessLevel ?? MediaAccessLevel.Managed
         );
     }
 
@@ -81,7 +81,7 @@ public class MediaItem
             provider,
             ownerId,
             MediaPurpose.Attachment,
-            accessLevel ?? MediaAccessLevel.Private);
+            accessLevel ?? MediaAccessLevel.Managed);
 
         media.AddLink(link);
         return media;

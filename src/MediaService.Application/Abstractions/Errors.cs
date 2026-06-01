@@ -13,6 +13,7 @@ public record ContentTypeIsNotAllowed : Error
 }
 
 public record MediaNotFoundError() : Error(nameof(MediaNotFoundError), "Media not found.");
+public record AccessDeniedError() : Error(nameof(AccessDeniedError), "Access Denied.");
 public record InvalidFileName() : Error(nameof(InvalidFileName), "Invalid File Name.");
 
 public record DuplicateLinkError() : Error(nameof(DuplicateLinkError), "Link is Duplicated..");

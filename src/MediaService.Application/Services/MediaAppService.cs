@@ -3,6 +3,7 @@ using MediaService.Application.Commands;
 using MediaService.Application.DTOs;
 using MediaService.Application.Errors;
 using MediaService.Domain.Entities;
+using MediaService.Domain.Enums;
 
 namespace MediaService.Application.Services;
 
@@ -47,13 +48,18 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
             command.File.ContentType,
             command.File.Length,
             storage.ProviderName,
-            command.OwnerId);
+            command.OwnerId,
+            command.AccessLevel);
 
         try
         {
             await repository.AddAsync(media, cancellationToken);
             await repository.SaveChangesAsync(cancellationToken);
-            return Result.Success(Map(media, stored.PublicUrl));
+            return Result.Success(Map(
+                category: MediaItem.PersonalCategory,
+                accessLevel: media.AccessLevel,
+                media: media,
+                url: stored.PublicUrl));
         }
         catch
         {
@@ -93,13 +99,18 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
             command.File.Length,
             storage.ProviderName,
             command.Owner,
-            command.OwnerId);
+            command.OwnerId,
+            command.AccessLevel);
 
         try
         {
             await repository.AddAsync(media, cancellationToken);
             await repository.SaveChangesAsync(cancellationToken);
-            return Result.Success(Map(media, stored.PublicUrl));
+            return Result.Success(Map(
+                category: command.Category,
+                accessLevel: media.AccessLevel,
+                media: media,
+                url: stored.PublicUrl));
         }
         catch
         {
@@ -177,13 +188,18 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
     }
 
     public async Task<Result<MediaDownloadResult>> DownloadAsync(
-        Guid id,
+        Guid id, 
         CancellationToken cancellationToken = default)
     {
         var media = await repository.GetByIdAsync(id, cancellationToken);
 
         if (media is null || media.IsDeleted())
             return Result.Failure<MediaDownloadResult>(new MediaNotFoundError());
+
+        if (media.AccessLevel != MediaAccessLevel.Public)
+        {
+            return Result.Failure<MediaDownloadResult>(new AccessDeniedError());
+        }
 
         var stream = await storage.OpenReadAsync(
             media.BucketName,
@@ -249,10 +265,12 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
         return Result.Success(new MediaValidationResponse(validIds.ToList(), invalidIds));
     }
 
-    private static MediaResponse Map(MediaItem media, string url)
+    private static MediaResponse Map(string category, MediaAccessLevel accessLevel, MediaItem media, string url)
     {
         return new MediaResponse(
             media.Id,
+            category,
+            accessLevel,
             media.OriginalFileName,
             media.ContentType,
             media.Size,

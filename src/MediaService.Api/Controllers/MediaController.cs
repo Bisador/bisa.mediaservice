@@ -23,11 +23,14 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
         var ownerId = User.GetUserId();
         var tenantId = User.GetTenantId();
 
-        var command = new UploadPersonalMediaCommand(tenantId, request.File, ownerId);
+        var command = new UploadPersonalMediaCommand(tenantId, request.File, request.AccessLevel, ownerId);
 
         var result = await service.UploadPersonalAsync(command, cancellationToken);
 
-        return result.Match(Ok, Problem);
+        return CreatedAtAction(
+            nameof(Download),
+            new { id = result.Value.Id },
+            result.Value);
     }
 
     [HttpPost("attachments")]
@@ -44,12 +47,19 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
             tenantId,
             request.Category,
             request.File,
+            request.AccessLevel,
             new OwnerReference(request.OwnerType, request.OwnerId),
             ownerId);
 
         var result = await service.UploadAttachmentAsync(command, cancellationToken);
 
-        return result.Match(Ok, Problem);
+        if (result.IsFailure)
+            return result.ToActionResult(this);
+
+        return CreatedAtAction(
+            nameof(Download),
+            new { id = result.Value.Id },
+            result.Value);
     }
 
     [HttpGet("{id:guid}")]
@@ -86,7 +96,7 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
 
         var result = await service.LinkAsync(command, cancellationToken);
 
-        return result.Match(_ => NoContent(), Problem);
+        return result.ToActionResult(this);
     }
 
     [HttpDelete("{id:guid}/links/{linkId:guid}")]
@@ -99,7 +109,7 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
 
         var result = await service.RemoveLinkAsync(new RemoveMediaLinkCommand(tenantId, id, linkId), cancellationToken);
 
-        return result.Match(_ => NoContent(), Problem);
+        return result.ToActionResult(this);
     }
 
     [HttpPost("validate")]
@@ -114,6 +124,6 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
             new ValidateMediaCommand(tenantId, request.MediaIds),
             cancellationToken);
 
-        return result.Match(Ok, Problem);
+        return result.ToActionResult(this);
     }
 }

@@ -2,6 +2,6 @@ namespace MediaService.Domain.Enums;
 
 public enum MediaAccessLevel
 {
-    Private = 0,
+    Managed = 0,
     Public = 1
 }
