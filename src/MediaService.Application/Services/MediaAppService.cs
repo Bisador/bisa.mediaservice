@@ -188,7 +188,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
     }
 
     public async Task<Result<MediaDownloadResult>> DownloadAsync(
-        Guid id, 
+        Guid id,
         CancellationToken cancellationToken = default)
     {
         var media = await repository.GetByIdAsync(id, cancellationToken);
@@ -248,9 +248,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
         ValidateMediaCommand command,
         CancellationToken cancellationToken = default)
     {
-        var media = await repository.GetByIdsAsync(
-            command.MediaIds,
-            cancellationToken);
+        var media = await repository.GetByIdsAsync(command.MediaIds, cancellationToken);
 
         var validIds = media
             .Where(x => x.TenantId == command.TenantId)
@@ -263,6 +261,26 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
             .ToList();
 
         return Result.Success(new MediaValidationResponse(validIds.ToList(), invalidIds));
+    }
+
+    public async Task<Result<MediaMetadataResponse>> MetadataAsync(
+        MetadataMediaCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var media = await repository.GetByIdAsync(command.Id, cancellationToken);
+
+        if (media is null || media.TenantId != command.TenantId)
+        {
+            return Result.Success(MediaMetadataResponse.NotExisted());
+        }
+
+        return Result.Success(MediaMetadataResponse.Existed(
+            media.Id,
+            media.TenantId,
+            media.IsDeleted(),
+            media.IsAvailable(),
+            media.Category
+        )); 
     }
 
     private static MediaResponse Map(string category, MediaAccessLevel accessLevel, MediaItem media, string url)

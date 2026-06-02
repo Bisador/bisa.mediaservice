@@ -33,4 +33,8 @@ public interface IMediaAppService
     Task<Result<MediaValidationResponse>> ValidateAsync(
         ValidateMediaCommand command,
         CancellationToken cancellationToken = default);
+    
+    Task<Result<MediaMetadataResponse>> MetadataAsync(
+        MetadataMediaCommand command,
+        CancellationToken cancellationToken = default);
 }
