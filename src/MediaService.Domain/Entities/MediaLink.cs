@@ -8,8 +8,9 @@ public sealed class MediaLink : IEquatable<MediaLink>
     public string OwnerId { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
+    
     public MediaItem Media { get; private set; } = default!;
-    public string MediaId { get; private set; }
+    public Guid MediaId { get; private set; }
 
     private MediaLink()
     {

@@ -187,6 +187,7 @@ public class MediaItem
     }
 
     public bool IsDeleted() => Status == MediaStatus.Deleted;
+    public bool IsAvailable() => Status == MediaStatus.Available;
     public bool HasLinks => Links.Any();
     public bool CanAcceptLink => Status == MediaStatus.Available;
 }

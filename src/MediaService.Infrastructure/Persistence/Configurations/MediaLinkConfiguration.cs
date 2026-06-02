@@ -18,7 +18,7 @@ public sealed class MediaLinkConfiguration : IEntityTypeConfiguration<MediaLink>
 
         builder.Property(x => x.OwnerId)
             .HasMaxLength(200);
-
+ 
         builder.HasIndex(x =>
             new
             {
