@@ -3,24 +3,24 @@ namespace MediaService.Domain.Entities;
 public sealed class MediaLink : IEquatable<MediaLink>
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
- 
-    public string OwnerType { get; private set; } = null!; 
-    public string OwnerId { get; private set; }
+
+    public string OwnerType { get; private set; } = null!;
+    public string OwnerId { get; private set; } = null!;
 
     public DateTime CreatedAt { get; private set; }
-    
-    public MediaItem Media { get; private set; } = default!;
+
+    public MediaItem Media { get; private set; } = null!;
     public Guid MediaId { get; private set; }
 
     private MediaLink()
     {
     }
 
-    public MediaLink( 
+    public MediaLink(
         string ownerType,
         string ownerId) : this()
-    { 
-        OwnerType = ownerType; 
+    {
+        OwnerType = ownerType;
         OwnerId = ownerId;
 
         CreatedAt = DateTime.UtcNow;

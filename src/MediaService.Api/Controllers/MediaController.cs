@@ -64,13 +64,21 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
 
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
-    public async Task<IActionResult> Download(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> DownloadPublic(Guid id, CancellationToken cancellationToken)
     {
-        var result = await service.DownloadAsync(id, cancellationToken);
+        var result = await service.DownloadPublicAsync(id, cancellationToken);
         return File(result.Value.Stream, result.Value.ContentType, result.Value.FileName);
     }
 
-
+    [HttpGet("internal/{id:guid}")]
+    [Authorize]
+    public async Task<IActionResult> Download(Guid id, CancellationToken cancellationToken)
+    {
+        var tenantId = User.GetTenantId();
+        var result = await service.DownloadInternalAsync(id, tenantId, cancellationToken);
+        return File(result.Value.Stream, result.Value.ContentType, result.Value.FileName);
+    }
+ 
     [HttpDelete("{id:guid}")]
     [Authorize]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)

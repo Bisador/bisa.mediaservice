@@ -187,7 +187,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
         return Result.Success();
     }
 
-    public async Task<Result<MediaDownloadResult>> DownloadAsync(
+    public async Task<Result<MediaDownloadResult>> DownloadPublicAsync(
         Guid id,
         CancellationToken cancellationToken = default)
     {
@@ -197,6 +197,33 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
             return Result.Failure<MediaDownloadResult>(new MediaNotFoundError());
 
         if (media.AccessLevel != MediaAccessLevel.Public)
+        {
+            return Result.Failure<MediaDownloadResult>(new AccessDeniedError());
+        }
+
+        var stream = await storage.OpenReadAsync(
+            media.BucketName,
+            media.ObjectKey,
+            cancellationToken);
+
+        return Result.Success(
+            new MediaDownloadResult(
+                stream,
+                media.ContentType,
+                media.OriginalFileName));
+    }
+    
+    public async Task<Result<MediaDownloadResult>> DownloadInternalAsync(
+        Guid id,
+        Guid tenantId,
+        CancellationToken cancellationToken = default)
+    {
+        var media = await repository.GetByIdAsync(id, cancellationToken);
+
+        if (media is null || media.IsDeleted())
+            return Result.Failure<MediaDownloadResult>(new MediaNotFoundError());
+
+        if (media.AccessLevel != MediaAccessLevel.Public && media.TenantId != tenantId)
         {
             return Result.Failure<MediaDownloadResult>(new AccessDeniedError());
         }
