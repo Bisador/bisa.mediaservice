@@ -78,7 +78,7 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
         var result = await service.DownloadInternalAsync(id, tenantId, cancellationToken);
         return File(result.Value.Stream, result.Value.ContentType, result.Value.FileName);
     }
- 
+
     [HttpDelete("{id:guid}")]
     [Authorize]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
@@ -116,6 +116,20 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
         var tenantId = User.GetTenantId();
 
         var result = await service.RemoveLinkAsync(new RemoveMediaLinkCommand(tenantId, id, linkId), cancellationToken);
+
+        return result.ToActionResult(this);
+    }
+
+    [HttpDelete("{id:guid}/links")]
+    public async Task<IActionResult> RemoveLink(
+        Guid id,
+        RemoveLinkRequest request,
+        CancellationToken cancellationToken)
+    {
+        var tenantId = User.GetTenantId();
+
+        var result = await service.RemoveLinkByOwnerAsync(
+            new RemoveMediaLinkByOwnerCommand(tenantId, id, request.OwnerType, request.OwnerId), cancellationToken);
 
         return result.ToActionResult(this);
     }

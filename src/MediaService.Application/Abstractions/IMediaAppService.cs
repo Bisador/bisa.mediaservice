@@ -20,6 +20,10 @@ public interface IMediaAppService
     Task<Result> RemoveLinkAsync(
         RemoveMediaLinkCommand command,
         CancellationToken cancellationToken = default);
+    
+    Task<Result> RemoveLinkByOwnerAsync(
+        RemoveMediaLinkByOwnerCommand command,
+        CancellationToken cancellationToken = default);
 
     Task<Result<MediaDownloadResult>> DownloadPublicAsync(
         Guid id,

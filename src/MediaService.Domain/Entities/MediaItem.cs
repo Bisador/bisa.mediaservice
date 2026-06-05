@@ -185,6 +185,19 @@ public class MediaItem
         Links.Remove(link);
         return link;
     }
+    
+    public MediaLink? RemoveLink(string ownerType,string ownerId)
+    {
+        if (Purpose == MediaPurpose.Attachment)
+            throw new AttachmentLinkCantBeRemovedException();
+
+        var link = Links.FirstOrDefault(p => p.OwnerId.Equals(ownerId) &&  p.OwnerType.Equals(ownerType));
+        if (link is null)
+            return null;
+
+        Links.Remove(link);
+        return link;
+    }
 
     public bool IsDeleted() => Status == MediaStatus.Deleted;
     public bool IsAvailable() => Status == MediaStatus.Available;

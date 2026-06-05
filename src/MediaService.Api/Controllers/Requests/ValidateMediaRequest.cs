@@ -1,4 +1,4 @@
-namespace MediaService.Api.Controllers;
+namespace MediaService.Api.Controllers.Requests;
 
 public sealed class ValidateMediaRequest
 {

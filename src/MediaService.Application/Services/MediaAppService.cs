@@ -158,10 +158,10 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
     {
         var media = await repository.GetByIdAsync(command.MediaId, cancellationToken);
 
-        if (media is null || media.IsDeleted() || media.TenantId != command.TenantId)
-            return Result.Failure(new MediaNotFoundError());
-
-        media.AddLink(command.Owner);
+        if (IsMediaExisted(media, command.TenantId) is { IsFailure: true } existed)
+            return Result.Failure(existed.Error);
+         
+        media!.AddLink(command.Owner);
 
         await repository.SaveChangesAsync(cancellationToken);
 
@@ -174,11 +174,42 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
     {
         var media = await repository.GetByIdAsync(command.MediaId, cancellationToken);
 
-        if (media is null || media.IsDeleted() || media.TenantId != command.TenantId)
-            return Result.Failure(new MediaNotFoundError());
+        if (IsMediaExisted(media, command.TenantId) is { IsFailure: true } existed)
+            return Result.Failure(existed.Error); 
+
+        if (media!.Purpose == MediaPurpose.Attachment)
+        {
+            if (await DeleteMediaAsync(media, cancellationToken) is { IsFailure: true } removeResult)
+                return removeResult;
+            return Result.Success();
+        }
 
         var link = media.RemoveLink(command.LinkId);
+        if (link is null)
+            return Result.Failure(new MediaLinkNotFound());
 
+        await repository.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
+    }
+
+    public async Task<Result> RemoveLinkByOwnerAsync(
+        RemoveMediaLinkByOwnerCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var media = await repository.GetByIdAsync(command.MediaId, cancellationToken);
+
+        if (IsMediaExisted(media, command.TenantId) is { IsFailure: true } existed)
+            return Result.Failure(existed.Error);
+          
+        if (media!.Purpose == MediaPurpose.Attachment)
+        {
+            if (await DeleteMediaAsync(media, cancellationToken) is { IsFailure: true } removeResult)
+                return removeResult;
+            return Result.Success();
+        }
+
+        var link = media.RemoveLink(command.OwnerType, command.OwnerId);
         if (link is null)
             return Result.Failure(new MediaLinkNotFound());
 
@@ -212,7 +243,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
                 media.ContentType,
                 media.OriginalFileName));
     }
-    
+
     public async Task<Result<MediaDownloadResult>> DownloadInternalAsync(
         Guid id,
         Guid tenantId,
@@ -220,10 +251,10 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
     {
         var media = await repository.GetByIdAsync(id, cancellationToken);
 
-        if (media is null || media.IsDeleted())
-            return Result.Failure<MediaDownloadResult>(new MediaNotFoundError());
-
-        if (media.AccessLevel != MediaAccessLevel.Public && media.TenantId != tenantId)
+        if (IsMediaExisted(media, tenantId) is { IsFailure: true } existed)
+            return Result.Failure<MediaDownloadResult>(existed.Error);
+          
+        if (media!.AccessLevel != MediaAccessLevel.Public && media.TenantId != tenantId)
         {
             return Result.Failure<MediaDownloadResult>(new AccessDeniedError());
         }
@@ -247,9 +278,14 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
     {
         var media = await repository.GetByIdAsync(id, cancellationToken);
 
-        if (media is null || media.IsDeleted() || media.TenantId != tenantId)
-            return Result.Failure(new MediaNotFoundError());
+        if (IsMediaExisted(media, tenantId) is { IsFailure: true } existed)
+            return Result.Failure(existed.Error);
+          
+        return await DeleteMediaAsync(media!, cancellationToken);
+    }
 
+    private async Task<Result> DeleteMediaAsync(MediaItem media, CancellationToken cancellationToken)
+    {
         media.MarkDeleting();
         await repository.SaveChangesAsync(cancellationToken);
 
@@ -296,18 +332,18 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
     {
         var media = await repository.GetByIdAsync(command.Id, cancellationToken);
 
-        if (media is null || media.TenantId != command.TenantId)
-        {
-            return Result.Success(MediaMetadataResponse.NotExisted());
-        }
-
+        if (IsMediaExisted(media, command.TenantId) is { IsFailure: true } existed)
+            return Result.Failure<MediaMetadataResponse>(existed.Error);
+          
         return Result.Success(MediaMetadataResponse.Existed(
-            media.Id,
+            media!.Id,
             media.TenantId,
-            media.IsDeleted(),
-            media.IsAvailable(),
-            media.Category
-        )); 
+            media.Status,
+            media.ContentType,
+            media.AccessLevel,
+            media.Category,
+            media.Size
+        ));
     }
 
     private static MediaResponse Map(string category, MediaAccessLevel accessLevel, MediaItem media, string url)
@@ -322,4 +358,9 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
             url,
             media.CreatedAt);
     }
+
+    private static Result IsMediaExisted(MediaItem? media, Guid tenantId) =>
+        media is null || media.IsDeleted() || media.TenantId != tenantId
+            ? Result.Failure(new MediaNotFoundError())
+            : Result.Success();
 }
