@@ -61,6 +61,29 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
             new { id = result.Value.Id },
             result.Value);
     }
+    
+    [HttpPost("attachments/batch")]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(50 * 1024 * 1024)]
+    public async Task<ActionResult<List<MediaResponse>>> UploadAttachments(
+        [FromForm] UploadAttachmentBatchRequest request,
+        CancellationToken cancellationToken)
+    {
+        var ownerId = User.GetUserId();
+        var tenantId = User.GetTenantId();
+
+        var command = new UploadAttachmentBatchCommand(
+            tenantId,
+            request.Category,
+            request.File,
+            request.AccessLevel,
+            new OwnerReference(request.OwnerType, request.OwnerId),
+            ownerId);
+
+        var result = await service.UploadAttachmentBatchAsync(command, cancellationToken);
+ 
+        return result.ToActionResult(this); 
+    }
 
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
@@ -149,7 +172,7 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
         return result.ToActionResult(this);
     }
 
-    [HttpPost("{id:guid}/metadata")]
+    [HttpGet("{id:guid}/metadata")]
     public async Task<ActionResult<MediaMetadataResponse>> Metadata(
         Guid id,
         CancellationToken cancellationToken)

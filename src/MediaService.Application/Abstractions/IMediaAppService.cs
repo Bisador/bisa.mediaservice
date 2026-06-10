@@ -12,6 +12,10 @@ public interface IMediaAppService
     Task<Result<MediaResponse>> UploadAttachmentAsync(
         UploadAttachmentCommand command,
         CancellationToken cancellationToken = default);
+    
+    Task<Result<List<MediaResponse>>> UploadAttachmentBatchAsync(
+        UploadAttachmentBatchCommand command,
+        CancellationToken cancellationToken = default);
 
     Task<Result> LinkAsync(
         LinkMediaCommand command,

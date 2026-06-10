@@ -122,6 +122,70 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
         }
     }
 
+    public async Task<Result<List<MediaResponse>>> UploadAttachmentBatchAsync(
+        UploadAttachmentBatchCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        foreach (var commandFile in command.Files)
+        {
+            if (!IsValid(commandFile, out var failure))
+                return Result.Failure<List<MediaResponse>>(failure.Error);
+        }
+
+        List<(StoredFileResult Stored, MediaItem Media)> insertedItems = [];
+        try
+        {
+            foreach (var commandFile in command.Files)
+            {
+                await using var stream = commandFile.OpenReadStream();
+                var objectKey = ObjectKeyGenerator.Generate(command.TenantId, command.Category, commandFile.FileName);
+
+                var stored = await storage.SaveAsync(
+                    objectKey,
+                    stream,
+                    commandFile.FileName,
+                    commandFile.ContentType,
+                    cancellationToken);
+
+                var media = MediaItem.CreateAttachment(
+                    command.TenantId,
+                    commandFile.FileName,
+                    stored.BucketName,
+                    command.Category,
+                    stored.ObjectKey,
+                    commandFile.ContentType,
+                    commandFile.Length,
+                    storage.ProviderName,
+                    command.Owner,
+                    command.OwnerId,
+                    command.AccessLevel);
+
+                insertedItems.Add((stored, media));
+
+                await repository.AddAsync(media, cancellationToken);
+            }
+
+            await repository.SaveChangesAsync(cancellationToken);
+            return Result.Success(insertedItems.Select(item => Map(
+                category: command.Category,
+                accessLevel: item.Media.AccessLevel,
+                media: item.Media,
+                url: item.Stored.PublicUrl)).ToList());
+        }
+        catch
+        {
+            foreach (var storedFileResult in insertedItems)
+            {
+                await storage.DeleteAsync(
+                    storedFileResult.Media.BucketName,
+                    storedFileResult.Media.ObjectKey,
+                    cancellationToken);
+            }
+
+            throw;
+        }
+    }
+
     private static bool IsValid(IFormFile file, out Result<MediaResponse> failure)
     {
         if (file.Length == 0)
@@ -160,7 +224,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
 
         if (IsMediaExisted(media, command.TenantId) is { IsFailure: true } existed)
             return Result.Failure(existed.Error);
-         
+
         media!.AddLink(command.Owner);
 
         await repository.SaveChangesAsync(cancellationToken);
@@ -175,7 +239,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
         var media = await repository.GetByIdAsync(command.MediaId, cancellationToken);
 
         if (IsMediaExisted(media, command.TenantId) is { IsFailure: true } existed)
-            return Result.Failure(existed.Error); 
+            return Result.Failure(existed.Error);
 
         if (media!.Purpose == MediaPurpose.Attachment)
         {
@@ -201,7 +265,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
 
         if (IsMediaExisted(media, command.TenantId) is { IsFailure: true } existed)
             return Result.Failure(existed.Error);
-          
+
         if (media!.Purpose == MediaPurpose.Attachment)
         {
             if (await DeleteMediaAsync(media, cancellationToken) is { IsFailure: true } removeResult)
@@ -253,7 +317,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
 
         if (IsMediaExisted(media, tenantId) is { IsFailure: true } existed)
             return Result.Failure<MediaDownloadResult>(existed.Error);
-          
+
         if (media!.AccessLevel != MediaAccessLevel.Public && media.TenantId != tenantId)
         {
             return Result.Failure<MediaDownloadResult>(new AccessDeniedError());
@@ -280,7 +344,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
 
         if (IsMediaExisted(media, tenantId) is { IsFailure: true } existed)
             return Result.Failure(existed.Error);
-          
+
         return await DeleteMediaAsync(media!, cancellationToken);
     }
 
@@ -334,7 +398,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
 
         if (IsMediaExisted(media, command.TenantId) is { IsFailure: true } existed)
             return Result.Failure<MediaMetadataResponse>(existed.Error);
-          
+
         return Result.Success(MediaMetadataResponse.Existed(
             media!.Id,
             media.TenantId,
