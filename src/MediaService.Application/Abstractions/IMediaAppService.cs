@@ -50,4 +50,8 @@ public interface IMediaAppService
     Task<Result<MediaMetadataResponse>> MetadataAsync(
         MetadataMediaCommand command,
         CancellationToken cancellationToken = default);
+    
+    Task<Result<List<MediaMetadataResponse>>> MetadataBatchAsync(
+        MetadataBatchMediaCommand command,
+        CancellationToken cancellationToken = default);
 }

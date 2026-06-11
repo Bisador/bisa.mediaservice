@@ -182,4 +182,15 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
         var result = await service.MetadataAsync(new MetadataMediaCommand(tenantId, id), cancellationToken);
         return result.ToActionResult(this);
     }
+    
+    [HttpGet("metadata")]
+    public async Task<ActionResult<List<MediaMetadataResponse>>> MetadataBatch(
+        List<Guid> id,
+        CancellationToken cancellationToken)
+    {
+        var tenantId = User.GetTenantId();
+
+        var result = await service.MetadataBatchAsync(new MetadataBatchMediaCommand(tenantId, id), cancellationToken);
+        return result.ToActionResult(this);
+    }
 }

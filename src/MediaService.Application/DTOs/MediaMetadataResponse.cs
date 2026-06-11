@@ -4,10 +4,11 @@ namespace MediaService.Application.DTOs;
 
 public sealed record MediaMetadataResponse
 {
-    public static MediaMetadataResponse NotExisted()
+    public static MediaMetadataResponse NotExisted(Guid mediaId)
     {
         return new MediaMetadataResponse()
         {
+            Id = mediaId,
             Exists = false
         };
     }
@@ -33,9 +34,9 @@ public sealed record MediaMetadataResponse
             Size = size,
         };
     }
-  
+
     public bool Exists { get; init; }
-    public Guid? Id { get; init; }
+    public Guid Id { get; init; }
     public Guid? TenantId { get; init; }
     public MediaStatus Status { get; set; }
     public string? ContentType { get; set; }
