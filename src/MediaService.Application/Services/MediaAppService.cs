@@ -40,7 +40,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
             command.File.ContentType,
             cancellationToken);
 
-        var media = MediaItem.CreatePersonal(
+        var media = MediaItem.Create(
             command.TenantId,
             command.File.FileName,
             stored.BucketName,
@@ -80,30 +80,28 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
 
         await using var stream = command.File.OpenReadStream();
 
-        var objectKey = ObjectKeyGenerator.Generate(command.TenantId, command.Category, command.File.FileName);
-
+        var objectKey = ObjectKeyGenerator.Generate(command.TenantId, command.Category, command.File.FileName); 
         var stored = await storage.SaveAsync(
             objectKey,
             stream,
             command.File.FileName,
             command.File.ContentType,
             cancellationToken);
-
-        var media = MediaItem.CreateAttachment(
-            command.TenantId,
-            command.File.FileName,
-            stored.BucketName,
-            command.Category,
-            stored.ObjectKey,
-            command.File.ContentType,
-            command.File.Length,
-            storage.ProviderName,
-            command.Owner,
-            command.OwnerId,
-            command.AccessLevel);
-
+ 
         try
         {
+            var media = MediaItem.CreateAttachment(
+                command.TenantId,
+                command.File.FileName,
+                stored.BucketName,
+                command.Category,
+                stored.ObjectKey,
+                command.File.ContentType,
+                command.File.Length,
+                storage.ProviderName, 
+                command.OwnerId,
+                command.AccessLevel);
+            
             await repository.AddAsync(media, cancellationToken);
             await repository.SaveChangesAsync(cancellationToken);
             return Result.Success(Map(
@@ -155,8 +153,7 @@ public sealed class MediaAppService(IMediaRepository repository, IFileStorage st
                     stored.ObjectKey,
                     commandFile.ContentType,
                     commandFile.Length,
-                    storage.ProviderName,
-                    command.Owner,
+                    storage.ProviderName, 
                     command.OwnerId,
                     command.AccessLevel);
 

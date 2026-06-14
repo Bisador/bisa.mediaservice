@@ -40,15 +40,15 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
         [FromForm] UploadAttachmentRequest request,
         CancellationToken cancellationToken)
     {
-        var ownerId = User.GetUserId();
-        var tenantId = User.GetTenantId();
-
+        var ownerId = "default";// User.GetUserId();
+        //var tenantId = User.GetTenantId();
+        var tenantId=Guid.Empty;
+         
         var command = new UploadAttachmentCommand(
             tenantId,
             request.Category,
             request.File,
-            request.AccessLevel,
-            new OwnerReference(request.OwnerType, request.OwnerId),
+            request.AccessLevel, 
             ownerId);
 
         var result = await service.UploadAttachmentAsync(command, cancellationToken);
@@ -61,7 +61,7 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
             new { id = result.Value.Id },
             result.Value);
     }
-    
+
     [HttpPost("attachments/batch")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(50 * 1024 * 1024)]
@@ -76,13 +76,12 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
             tenantId,
             request.Category,
             request.File,
-            request.AccessLevel,
-            new OwnerReference(request.OwnerType, request.OwnerId),
+            request.AccessLevel, 
             ownerId);
 
         var result = await service.UploadAttachmentBatchAsync(command, cancellationToken);
- 
-        return result.ToActionResult(this); 
+
+        return result.ToActionResult(this);
     }
 
     [HttpGet("{id:guid}")]
@@ -182,7 +181,7 @@ public sealed class MediaController(IMediaAppService service) : ControllerBase
         var result = await service.MetadataAsync(new MetadataMediaCommand(tenantId, id), cancellationToken);
         return result.ToActionResult(this);
     }
-    
+
     [HttpGet("metadata")]
     public async Task<ActionResult<List<MediaMetadataResponse>>> MetadataBatch(
         List<Guid> id,

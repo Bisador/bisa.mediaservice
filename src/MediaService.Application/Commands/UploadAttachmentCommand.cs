@@ -7,6 +7,13 @@ public sealed record UploadAttachmentCommand(
     Guid TenantId,
     string Category,
     IFormFile File,
+    MediaAccessLevel? AccessLevel, 
+    string? OwnerId);
+    
+public sealed record UploadAttachmentWithLinkCommand(
+    Guid TenantId,
+    string Category,
+    IFormFile File,
     MediaAccessLevel? AccessLevel,
     OwnerReference Owner,
     string? OwnerId);

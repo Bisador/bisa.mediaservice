@@ -7,6 +7,5 @@ public sealed record UploadAttachmentBatchCommand(
     Guid TenantId,
     string Category,
     List<IFormFile> Files,
-    MediaAccessLevel? AccessLevel,
-    OwnerReference Owner,
+    MediaAccessLevel? AccessLevel, 
     string? OwnerId);

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MediaService.Infrastructure.Migrations
 {
     [DbContext(typeof(MediaDbContext))]
-    [Migration("20260602113106_Initial")]
+    [Migration("20260614063853_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

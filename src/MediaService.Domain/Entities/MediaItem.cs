@@ -31,7 +31,7 @@ public class MediaItem
     public DateTimeOffset? DeletedAt { get; private set; }
     public string? Sha256 { get; private set; }
 
-    public static MediaItem CreatePersonal(
+    public static MediaItem Create(
         Guid tenantId,
         string originalFileName,
         string bucketName, 
@@ -43,17 +43,17 @@ public class MediaItem
         MediaAccessLevel? accessLevel = null)
     {
         return new MediaItem(
-            tenantId,
-            originalFileName,
-            bucketName,
-            PersonalCategory,
-            objectKey,
-            contentType,
-            size,
-            provider,
-            ownerId,
-            MediaPurpose.PersonalStorage,
-            accessLevel ?? MediaAccessLevel.Managed
+            tenantId: tenantId,
+            originalFileName: originalFileName,
+            category: PersonalCategory,
+            bucketName: bucketName,
+            objectKey: objectKey,
+            contentType: contentType,
+            size: size,
+            storageProvider: provider,
+            ownerId: ownerId,
+            purpose: MediaPurpose.PersonalStorage,
+            accessLevel: accessLevel ?? MediaAccessLevel.Managed
         );
     }
 
@@ -65,25 +65,22 @@ public class MediaItem
         string objectKey,
         string contentType,
         long size,
-        string provider,
-        OwnerReference link,
+        string provider, 
         string? ownerId,
         MediaAccessLevel? accessLevel = null)
     {
         var media = new MediaItem(
-            tenantId,
-            originalFileName,
-            bucketName,
-            category,
-            objectKey,
-            contentType,
-            size,
-            provider,
-            ownerId,
-            MediaPurpose.Attachment,
-            accessLevel ?? MediaAccessLevel.Managed);
-
-        media.AddLink(link);
+            tenantId: tenantId,
+            originalFileName: originalFileName,
+            category: category,
+            bucketName: bucketName,
+            objectKey: objectKey,
+            contentType: contentType,
+            size: size,
+            storageProvider: provider,
+            ownerId: ownerId,
+            purpose: MediaPurpose.Attachment,
+            accessLevel: accessLevel ?? MediaAccessLevel.Managed); 
         return media;
     }
 
@@ -160,7 +157,7 @@ public class MediaItem
         if (!CanAcceptLink)
             throw new MediaIsNotAvailableException();
 
-        if (Purpose == MediaPurpose.Attachment && Links.Count != 1)
+        if (Purpose == MediaPurpose.Attachment && Links.Count > 1)
             throw new AttachmentMustHaveOnlyOneLinkException();
 
         var link = new MediaLink(ownerReference.OwnerType, ownerReference.OwnerId);

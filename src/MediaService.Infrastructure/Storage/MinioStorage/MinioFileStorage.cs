@@ -44,7 +44,7 @@ public sealed class MinioFileStorage : IFileStorage
         var response = await _minio.PutObjectAsync(putObjectArgs, cancellationToken);
 
         var publicUrl =
-            $"{_options.Endpoint}/{_options.Bucket}/{objectKey}";
+            $"{_options.Bucket}/{objectKey}";
 
         return new StoredFileResult(
             _options.Bucket,
